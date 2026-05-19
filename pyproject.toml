@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "peppy-gtech"
+version = "1.0.0"
+description = "Keep Teams Status Green! Prevents system inactivity during working hours."
+readme = "README.MD"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["teams", "status", "activity", "inactivity", "mouse", "automation"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: Microsoft :: Windows",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: System :: Monitoring",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "pynput>=1.7.6",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/peppy-gtech"
+Documentation = "https://github.com/yourusername/peppy-gtech#readme"
+Repository = "https://github.com/yourusername/peppy-gtech.git"
+Issues = "https://github.com/yourusername/peppy-gtech/issues"
+
+[project.scripts]
+peppy-gtech = "peppy_gtech.cli:main"
+
+[tool.setuptools]
+packages = ["peppy_gtech"]
+
+[tool.setuptools.package-data]
+peppy_gtech = []
+
+[tool.black]
+line-length = 100
+target-version = ['py38', 'py39', 'py310', 'py311']
+
+[tool.isort]
+profile = "black"
+line_length = 100
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

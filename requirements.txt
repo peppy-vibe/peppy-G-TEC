@@ -1,0 +1,2 @@
+# Runtime dependency for Peppy G-TEC
+pynput>=1.7.6
