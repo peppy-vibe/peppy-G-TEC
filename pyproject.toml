@@ -3,14 +3,14 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "peppy-gtech"
-version = "1.0.0"
+name = "peppy-gtec"
+version = "1.1.0"
 description = "Keep Teams Status Green! Prevents system inactivity during working hours."
 readme = "README.MD"
 requires-python = ">=3.8"
 license = {text = "MIT"}
 authors = [
-    {name = "Your Name", email = "your.email@example.com"}
+    {name = "NickyPSCK"}
 ]
 keywords = ["teams", "status", "activity", "inactivity", "mouse", "automation"]
 classifiers = [
@@ -34,19 +34,19 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/peppy-gtech"
-Documentation = "https://github.com/yourusername/peppy-gtech#readme"
-Repository = "https://github.com/yourusername/peppy-gtech.git"
-Issues = "https://github.com/yourusername/peppy-gtech/issues"
+Homepage = "https://github.com/peppy-vibe/peppy-g-tec"
+Documentation = "https://github.com/peppy-vibe/peppy-g-tec#readme"
+Repository = "https://github.com/peppy-vibe/peppy-g-tec.git"
+Issues = "https://github.com/peppy-vibe/peppy-g-tec/issues"
 
 [project.scripts]
-peppy-gtech = "peppy_gtech.cli:main"
+peppy-gtec = "peppy_gtec.cli:main"
 
 [tool.setuptools]
-packages = ["peppy_gtech"]
+packages = ["peppy_gtec"]
 
 [tool.setuptools.package-data]
-peppy_gtech = []
+peppy_gtec = []
 
 [tool.black]
 line-length = 100

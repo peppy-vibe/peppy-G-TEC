@@ -81,7 +81,7 @@ pip install .
 Once installed, you can run the CLI from anywhere:
 
 ```bash
-peppy-gtech --help
+peppy-gtec --help
 ```
 
 ---
@@ -91,7 +91,7 @@ peppy-gtech --help
 Run the CLI tool from the command line:
 
 ```bash
-peppy-gtech [OPTIONS]
+peppy-gtec [OPTIONS]
 ```
 
 ### Command-Line Arguments
@@ -101,9 +101,20 @@ peppy-gtech [OPTIONS]
 | `--time`                   | `5`      | Timeout period in seconds before inactivity action is taken.                                                                                                     |
 | `--classic`                | Disabled | Enable classic (non-colored) output mode.                                                                                                                        |
 | `--no-logo`                | Disabled | Disable the display of the logo.                                                                                                                                 |
+| `--no-instructions`        | Disabled | Disable the display of the instructions.                                                                                                                         |
 | `--no-working-period`      | Disabled | Disable the display of working periods at startup.                                                                                                               |
 | `--no-status`              | Disabled | Disable the real-time activity status line.                                                                                                                      |
-| `--working-period`         | None     | Add working periods in the format `DAY:HH:MM:SS-HH:MM:SS`. Multiple periods separated by space. DAY must be one of: `MON TUE WED THU FRI SAT SUN`.             |
+| `--working-period`         | None     | Add working periods in the format `DAY:HH:MM:SS-HH:MM:SS`. Multiple periods separated by space. DAY must be one of: `MON TUE WED THU FRI SAT SUN`.               |
+| `--force-enforce`          | Disabled | Start in forced ENFORCED mode (ignores schedule until cancelled).                                                                                                |
+| `--force-release`          | Disabled | Start in forced RELEASED mode (ignores schedule until cancelled).                                                                                                |
+
+### On-the-Fly Force Controls
+
+While running, you can switch behavior at any time using hotkeys:
+
+- `CTRL+ALT+E` -> Force ENFORCED
+- `CTRL+ALT+R` -> Force RELEASED
+- `CTRL+ALT+C` -> Cancel force mode (return to working-period schedule)
 
 ---
 
@@ -130,37 +141,49 @@ When `--working-period` is not specified, the following defaults are used:
 Run with default settings (Mon–Fri 08:30–17:30, 5-second timeout):
 
 ```bash
-peppy-gtech
+peppy-gtec
 ```
 
 Run with a 60-second timeout:
 
 ```bash
-peppy-gtech --time 60
+peppy-gtec --time 60
 ```
 
 Run without colored output:
 
 ```bash
-peppy-gtech --time 60 --classic
+peppy-gtec --time 60 --classic
 ```
 
 Run without displaying working periods or the logo:
 
 ```bash
-peppy-gtech --no-logo --no-working-period
+peppy-gtec --no-logo --no-working-period
 ```
 
 Run with custom working periods:
 
 ```bash
-peppy-gtech --working-period MON:08:30:00-17:30:00 TUE:08:30:00-17:30:00 WED:08:30:00-17:30:00 THU:08:30:00-17:30:00 FRI:08:30:00-17:30:00
+peppy-gtec --working-period MON:08:30:00-17:30:00 TUE:08:30:00-17:30:00 WED:08:30:00-17:30:00 THU:08:30:00-17:30:00 FRI:08:30:00-17:30:00
+```
+
+Start in forced ENFORCED mode:
+
+```bash
+peppy-gtec --force-enforce
+```
+
+Start in forced RELEASED mode:
+
+```bash
+peppy-gtec --force-release
 ```
 
 Run with different hours on different days:
 
 ```bash
-peppy-gtech --working-period MON:09:00:00-18:00:00 FRI:09:00:00-14:00:00
+peppy-gtec --working-period MON:09:00:00-18:00:00 FRI:09:00:00-14:00:00
 ```
 
 ---
@@ -170,7 +193,7 @@ peppy-gtech --working-period MON:09:00:00-18:00:00 FRI:09:00:00-14:00:00
 You can also import and use `AlwaysGreen` as a library in your own Python code:
 
 ```python
-from peppy_gtech import AlwaysGreen
+from peppy_gtec import AlwaysGreen
 
 working_periods = {
     'MON': [('08:30:00', '17:30:00')],
@@ -224,16 +247,16 @@ Run these tools to maintain code quality:
 
 ```bash
 # Format code with black
-black peppy_gtech/
+black peppy_gtec/
 
 # Sort imports with isort
-isort peppy_gtech/
+isort peppy_gtec/
 
 # Lint with flake8
-flake8 peppy_gtech/
+flake8 peppy_gtec/
 
 # Type checking with mypy
-mypy peppy_gtech/
+mypy peppy_gtec/
 
 # Run tests (if available)
 pytest
@@ -298,7 +321,7 @@ pip install -r requirements-dev.txt
 ## Project Structure
 
 ```
-peppy_gtech/
+peppy_gtec/
 ├── __init__.py              # Package initialization
 ├── core.py                  # Core AlwaysGreen class
 └── cli.py                   # Command-line interface
@@ -318,7 +341,7 @@ peppy_gtech/
 
 ## Troubleshooting
 
-### Command not found: peppy-gtech
+### Command not found: peppy-gtec
 Make sure you've installed the package:
 ```bash
 pip install -e .
@@ -356,7 +379,7 @@ Feel free to fork, modify, and improve this project. To contribute:
 ### v1.0.0 (Current)
 - Restructured as a Python package with CLI interface
 - Added `pyproject.toml` for modern Python packaging
-- Created CLI entry point: `peppy-gtech`
+- Created CLI entry point: `peppy-gtec`
 - Improved documentation and examples
 - Added development tools configuration
 

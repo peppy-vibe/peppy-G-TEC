@@ -5,7 +5,8 @@ Provides command-line interface for running the AlwaysGreen activity monitor.
 """
 import sys
 import argparse
-from .core import AlwaysGreen, DEFAULT_WORKING_PERIODS, DAY_ABBREVIATIONS, LOGO
+from .core import AlwaysGreen, DEFAULT_WORKING_PERIODS, DAY_ABBREVIATIONS
+from .logo import print_logo, print_instructions
 
 
 def parse_arguments():
@@ -19,14 +20,15 @@ def parse_arguments():
         description='Peppy G-TEC: Keep Teams Status Green! '
                     'Prevents system inactivity during working hours.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog='''
-Examples:
-  peppy-gtech                                    # Run with defaults (Mon-Fri 08:30-17:30)
-  peppy-gtech --time 60                          # Use 60-second timeout
-  peppy-gtech --classic                          # Disable colored output
-  peppy-gtech --no-logo --no-working-period     # Minimal output
-  peppy-gtech --working-period MON:09:00:00-18:00:00 FRI:09:00:00-14:00:00
-        '''
+                epilog=(
+                        'Examples:\n'
+                        '  peppy-gtec                                    # Run with defaults (Mon-Fri 08:30-17:30)\n'
+                        '  peppy-gtec --time 60                          # Use 60-second timeout\n'
+                        '  peppy-gtec --classic                          # Disable colored output\n'
+                        '  peppy-gtec --no-logo --no-working-period      # Minimal output\n'
+                        '  peppy-gtec --force-enforce                    # Force ENFORCED mode at startup\n'
+                        '  peppy-gtec --working-period MON:09:00:00-18:00:00 FRI:09:00:00-14:00:00'
+                )
     )
     parser.add_argument(
         '--version',
@@ -65,6 +67,13 @@ Examples:
         help='Disable the display of the logo'
     )
     parser.add_argument(
+        '--no-instructions',
+        action='store_false',
+        default=True,
+        dest='show_instructions',
+        help='Disable the display of instructions'
+    )
+    parser.add_argument(
         '--no-working-period',
         action='store_false',
         default=True,
@@ -77,6 +86,18 @@ Examples:
         default=True,
         dest='show_status',
         help='Disable the real-time activity status line'
+    )
+    parser.add_argument(
+        '--force-enforce',
+        action='store_true',
+        dest='force_enforce',
+        help='Start in forced ENFORCED mode (ignores working periods until cancelled)'
+    )
+    parser.add_argument(
+        '--force-release',
+        action='store_true',
+        dest='force_release',
+        help='Start in forced RELEASED mode (ignores working periods until cancelled)'
     )
 
     return parser.parse_args()
@@ -126,6 +147,16 @@ def main():
     """Entry point: parse arguments, initialize AlwaysGreen, and run."""
     args = parse_arguments()
 
+    if args.force_enforce and args.force_release:
+        print('Error: --force-enforce and --force-release cannot be used together.')
+        sys.exit(1)
+
+    initial_force_mode = None
+    if args.force_enforce:
+        initial_force_mode = 'enforce'
+    elif args.force_release:
+        initial_force_mode = 'release'
+
     # Parse working periods
     working_periods = parse_working_periods(args.working_period)
 
@@ -135,11 +166,15 @@ def main():
         working_periods=working_periods,
         modern_output=args.modern_output,
         show_status=args.show_status,
+        force_mode=initial_force_mode,
     )
 
     # Display logo if requested
     if args.show_logo:
-        print(LOGO)
+        print_logo()
+
+    if args.show_instructions:
+        print_instructions()
 
     # Display working periods if requested
     if args.show_working_period:

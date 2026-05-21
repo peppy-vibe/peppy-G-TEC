@@ -21,22 +21,6 @@ DEFAULT_WORKING_PERIODS = {
     'SUN': [],
 }
 
-LOGO = '''----------------------------------------------
-||||||||||||||||||||||||||||||||||||||||||||||
-----------------------------------------------
-\033[32m
-       ____           _____ _____ ____
-      / ___|         |_   _| ____/ ___|
-     | |  _   _____    | | |  _|| |
-     | |_| | |_____|   | | | |__| |___
-      \\____|           |_| |_____\\____|
-\033[0m
->>>>>>>>> :: Unleash Green Energy :: <<<<<<<<<
-----------------------------------------------
-|||||||||||| PRESS CTRL-C TO QUIT ||||||||||||
-----------------------------------------------'''
-
-
 class AlwaysGreen:
     """
     A class to prevent inactivity by detecting user input and moving the mouse.
@@ -47,6 +31,7 @@ class AlwaysGreen:
             lists of (start, end) time tuples during which activity is enforced.
         modern_output (bool): Enables modern output with colored text and emojis.
         show_status (bool): Displays the user activity status.
+        force_mode (str | None): If set to 'enforce' or 'release', forces that mode regardless of schedule.
     """
 
     def __init__(
@@ -54,7 +39,8 @@ class AlwaysGreen:
         timeout_period: int = 60,
         working_periods: dict = None,
         modern_output: bool = True,
-        show_status: bool = True
+        show_status: bool = True,
+        force_mode: str = None,
     ):
         """
         Initializes the AlwaysGreen instance with user-configurable parameters.
@@ -66,6 +52,8 @@ class AlwaysGreen:
                 Activity is only enforced during these periods.
             modern_output (bool): Enables or disables colored and emoji status output.
             show_status (bool): Enables or disables the display of user activity status.
+            force_mode (str | None): If set to 'enforce' or 'release', forces that mode regardless of schedule.
+                If None, follows the configured working periods.
         """
         self._time_format = '%H:%M:%S'
         self._mouse = mouse.Controller()
@@ -77,22 +65,67 @@ class AlwaysGreen:
         self._working_periods = self._process_working_periods(working_periods)
         self._modern_output = modern_output
         self._show_status = show_status
+        self._force_mode = None
 
-        self._in_working_period = self._check_working_period()
+        self._scheduled_in_working_period = self._check_working_period()
+        self._in_working_period = self._scheduled_in_working_period
         self._time_left = self._timeout_period
 
         if self._modern_output:
             self._reset_color = '\033[0m'
             self._green_color = '\033[32m'
             self._red_color = '\033[31m'
-            self._user_active_status = 'Status:🟢'
-            self._user_inactive_status = 'Status:🟡'
+            self._user_active_status = 'User:🟢'
+            self._user_inactive_status = 'User:🟡'
         else:
             self._reset_color = ''
             self._green_color = ''
             self._red_color = ''
-            self._user_active_status = ' #ACTIVE '
-            self._user_inactive_status = '#INACTIVE'
+            self._user_active_status = ' #ACT '
+            self._user_inactive_status = '#INACT'
+
+        self.set_force_mode(force_mode)
+
+    @property
+    def force_mode(self):
+        """
+        Returns the active force mode.
+
+        Returns:
+            str | None: 'enforce', 'release', or None.
+        """
+        return self._force_mode
+
+    def set_force_mode(self, mode):
+        """
+        Sets force mode to enforce/release or cancels force mode.
+
+        Args:
+            mode (str | None): 'enforce', 'release', or None.
+
+        Raises:
+            ValueError: If mode is not supported.
+        """
+        if mode is None:
+            self._force_mode = None
+        else:
+            mode_lower = mode.lower()
+            if mode_lower not in ('enforce', 'release'):
+                raise ValueError("mode must be one of: 'enforce', 'release', or None")
+            self._force_mode = mode_lower
+        self._refresh_enforcement_state()
+
+    def force_enforce(self):
+        """Forces ENFORCED mode regardless of configured working periods."""
+        self.set_force_mode('enforce')
+
+    def force_release(self):
+        """Forces RELEASED mode regardless of configured working periods."""
+        self.set_force_mode('release')
+
+    def cancel_force(self):
+        """Cancels force mode and returns to schedule-based behavior."""
+        self.set_force_mode(None)
 
     @property
     def status_str(self):
@@ -182,13 +215,25 @@ class AlwaysGreen:
                 return True
         return False
 
+    def _refresh_enforcement_state(self):
+        """
+        Recomputes effective enforcement state based on schedule and force mode.
+        """
+        self._scheduled_in_working_period = self._check_working_period()
+        if self._force_mode == 'enforce':
+            self._in_working_period = True
+        elif self._force_mode == 'release':
+            self._in_working_period = False
+        else:
+            self._in_working_period = self._scheduled_in_working_period
+
     def _set_active(self):
         """
         Resets the inactive timer when user activity is detected.
         """
         self._is_moved = True
         self._time_left = self._timeout_period
-        self._in_working_period = self._check_working_period()
+        self._refresh_enforcement_state()
         self._report_status()
 
     def _on_move(self, _x, _y):
@@ -226,10 +271,22 @@ class AlwaysGreen:
         Displays the current user activity status.
         """
         if self._show_status:
+
+
             if self._in_working_period:
-                app_status = f'{self._green_color}ENFORCED{self._reset_color}'
+                if self._force_mode is not None:
+                    app_status_label = 'FORCE ENFORCE'
+                else:
+                    app_status_label = 'SCHED ENFORCE'
+                status_color = self._green_color
             else:
-                app_status = f'{self._red_color}RELEASED{self._reset_color}'
+                if self._force_mode is not None:
+                    app_status_label = 'FORCE RELEASE'
+                else:
+                    app_status_label = 'SCHED RELEASE'
+                status_color = self._red_color
+
+            app_status = f'{status_color}{app_status_label}{self._reset_color}'
 
             if self._is_moved:
                 user_status = self._user_active_status
@@ -237,7 +294,7 @@ class AlwaysGreen:
                 user_status = self._user_inactive_status
 
             app_status_str = f'| {app_status}'
-            countdown_str = f'| Inactive in {self._time_left:>6}s'
+            countdown_str = f'| Launch in {self._time_left:>5}s'
             user_status_str = f'| {user_status} |'
 
             self._status_str = ' '.join([
@@ -253,7 +310,7 @@ class AlwaysGreen:
         Also re-checks working period each tick to handle hour boundaries.
         """
         while self._time_left >= 0:
-            self._in_working_period = self._check_working_period()
+            self._refresh_enforcement_state()
             self._report_status()
             self._time_left -= 1
             time.sleep(1)
@@ -296,17 +353,25 @@ class AlwaysGreen:
                 on_press=self._on_press,
                 on_release=self._on_release
             )
+            hotkey_listener = keyboard.GlobalHotKeys({
+                '<ctrl>+<alt>+e': self.force_enforce,
+                '<ctrl>+<alt>+r': self.force_release,
+                '<ctrl>+<alt>+c': self.cancel_force,
+            })
 
             mouse_listener.start()
             keyboard_listener.start()
+            hotkey_listener.start()
 
             self._wait()
 
             mouse_listener.stop()
             keyboard_listener.stop()
+            hotkey_listener.stop()
             mouse_listener.join()
             keyboard_listener.join()
+            hotkey_listener.join()
 
-            self._in_working_period = self._check_working_period()
+            self._refresh_enforcement_state()
             self._move_mouse()
             self._is_moved = False
